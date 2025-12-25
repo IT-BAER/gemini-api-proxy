@@ -338,24 +338,23 @@ def discover_project():
             # Extract and store additional account info
             state["account_info"] = {
                 "project_id": data.get("cloudaicompanionProject"),
-                "billing_enabled": data.get("billingEnabled"),
-                "user_email": data.get("userEmail"),
-                "subscription": data.get("subscription"),
-                "edition": data.get("edition"),
-                "quota_info": data.get("quotaInfo"),
-                "raw_keys": list(data.keys())  # Log all available keys
+                "current_tier": data.get("currentTier"),
+                "allowed_tiers": data.get("allowedTiers"),
+                "gcp_managed": data.get("gcpManaged"),
+                "manage_subscription_uri": data.get("manageSubscriptionUri"),
+                "raw_keys": list(data.keys())
             }
             
             print(f"  [DEBUG] Project Discovered: {state['project_id']}")
             print(f"  [DEBUG] Response keys: {list(data.keys())}")
             
-            # Print tier-relevant info if available
-            if data.get("subscription"):
-                print(f"  [INFO] Subscription: {data.get('subscription')}")
-            if data.get("edition"):
-                print(f"  [INFO] Edition: {data.get('edition')}")
-            if data.get("billingEnabled") is not None:
-                print(f"  [INFO] Billing Enabled: {data.get('billingEnabled')}")
+            # Print tier-relevant info
+            if data.get("currentTier"):
+                print(f"  [INFO] Current Tier: {data.get('currentTier')}")
+            if data.get("allowedTiers"):
+                print(f"  [INFO] Allowed Tiers: {data.get('allowedTiers')}")
+            if data.get("gcpManaged") is not None:
+                print(f"  [INFO] GCP Managed: {data.get('gcpManaged')}")
                 
         elif resp.status_code == 401:
             print(f"  [DEBUG] Project discovery returned 401. Attempting token refresh...")
@@ -498,14 +497,16 @@ async def lifespan(app: FastAPI):
         
         # Print account info if available
         account_info = state.get("account_info", {})
-        if account_info.get("raw_keys"):
-            print(f"  API Response Keys: {account_info['raw_keys']}")
-        if account_info.get("subscription"):
-            print(f"  Subscription: {account_info['subscription']}")
-        if account_info.get("edition"):
-            print(f"  Edition: {account_info['edition']}")
-        if account_info.get("billing_enabled") is not None:
-            print(f"  Billing Enabled: {account_info['billing_enabled']}")
+        current_tier = account_info.get("current_tier")
+        if current_tier:
+            # currentTier is a dict like {'id': 'standard-tier', ...}
+            tier_id = current_tier.get("id", str(current_tier)) if isinstance(current_tier, dict) else str(current_tier)
+            print(f"  Tier: {tier_id}")
+        allowed_tiers = account_info.get("allowed_tiers")
+        if allowed_tiers:
+            # allowedTiers is a list of dicts
+            tier_names = [t.get("id", str(t)) if isinstance(t, dict) else str(t) for t in allowed_tiers]
+            print(f"  Allowed Tiers: {', '.join(tier_names)}")
             
         if SHOW_TOKEN:
             print(f"  Token: {state['tokens'].get('access_token', 'N/A')[:50]}...")
