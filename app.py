@@ -463,23 +463,18 @@ class CountTokensRequest(BaseModel):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup and shutdown events."""
-    # Startup
-    print("\n" + "=" * 50)
-    print(f"  Gemini API Proxy v{VERSION}")
-    print("=" * 50)
+    import sys
+    import asyncio
     
+    # Pre-startup: load tokens and discover project
     if load_tokens():
         discover_project()
-        print(f"  Status: Authenticated")
-        print(f"  Project: {state['project_id']}")
-        if SHOW_TOKEN:
-            print(f"  Token: {state['tokens'].get('access_token', 'N/A')[:50]}...")
     else:
         state["pkce_verifier"] = secrets.token_urlsafe(64)
         hashed = hashlib.sha256(state["pkce_verifier"].encode('ascii')).digest()
         challenge = base64.urlsafe_b64encode(hashed).decode('ascii').rstrip('=')
         
-        auth_params = {
+        state["auth_params"] = {
             "client_id": CLIENT_ID,
             "redirect_uri": REDIRECT_URI,
             "response_type": "code",
@@ -488,14 +483,42 @@ async def lifespan(app: FastAPI):
             "code_challenge": challenge,
             "code_challenge_method": "S256",
         }
+    
+    # Small delay to let uvicorn print its startup message first
+    await asyncio.sleep(0.1)
+    
+    # Print banner (after uvicorn's startup messages)
+    print("\n" + "=" * 50)
+    print(f"  Gemini API Proxy v{VERSION}")
+    print("=" * 50)
+    
+    if state["tokens"]:
+        print(f"  Status: Authenticated")
+        print(f"  Project: {state['project_id']}")
+        
+        # Print account info if available
+        account_info = state.get("account_info", {})
+        if account_info.get("raw_keys"):
+            print(f"  API Response Keys: {account_info['raw_keys']}")
+        if account_info.get("subscription"):
+            print(f"  Subscription: {account_info['subscription']}")
+        if account_info.get("edition"):
+            print(f"  Edition: {account_info['edition']}")
+        if account_info.get("billing_enabled") is not None:
+            print(f"  Billing Enabled: {account_info['billing_enabled']}")
+            
+        if SHOW_TOKEN:
+            print(f"  Token: {state['tokens'].get('access_token', 'N/A')[:50]}...")
+    else:
         print(f"  Status: Not authenticated")
         print(f"  Setup:  http://localhost:{PORT}/setup")
     
     print(f"  Server: http://localhost:{PORT}")
     print(f"  Rate Limit: {RATE_LIMIT}s" if RATE_LIMIT > 0 else "  Rate Limit: Disabled")
     print("=" * 50 + "\n")
+    sys.stdout.flush()
     
-    yield
+    yield  # Server is now running and accepting requests
     
     # Shutdown
     print("Shutting down...")
