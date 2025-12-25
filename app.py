@@ -951,14 +951,36 @@ async def chat_completions(req: ChatCompletionRequest):
     
     # Translate OpenAI tools to Gemini functionDeclarations
     if req.tools:
+        # Helper to clean parameters (remove unsupported JSON Schema fields)
+        def clean_parameters(params):
+            """Recursively remove fields not supported by Gemini API."""
+            if not isinstance(params, dict):
+                return params
+            
+            # Fields that Gemini API doesn't accept
+            unsupported = {'$schema', 'additionalProperties', '$id', '$ref', '$defs', 'definitions'}
+            cleaned = {}
+            for key, value in params.items():
+                if key in unsupported:
+                    continue
+                if isinstance(value, dict):
+                    cleaned[key] = clean_parameters(value)
+                elif isinstance(value, list):
+                    cleaned[key] = [clean_parameters(item) if isinstance(item, dict) else item for item in value]
+                else:
+                    cleaned[key] = value
+            return cleaned
+        
         function_declarations = []
         for tool in req.tools:
             if tool.type == "function":
                 func = tool.function
+                # Clean parameters to remove unsupported fields
+                cleaned_params = clean_parameters(func.parameters) if func.parameters else {"type": "object", "properties": {}}
                 function_declarations.append({
                     "name": func.name,
                     "description": func.description or "",
-                    "parameters": func.parameters or {"type": "object", "properties": {}}
+                    "parameters": cleaned_params
                 })
         if function_declarations:
             gemini_payload["request"]["tools"] = [{
