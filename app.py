@@ -346,15 +346,6 @@ def discover_project():
             }
             
             print(f"  [DEBUG] Project Discovered: {state['project_id']}")
-            print(f"  [DEBUG] Response keys: {list(data.keys())}")
-            
-            # Print tier-relevant info
-            if data.get("currentTier"):
-                print(f"  [INFO] Current Tier: {data.get('currentTier')}")
-            if data.get("allowedTiers"):
-                print(f"  [INFO] Allowed Tiers: {data.get('allowedTiers')}")
-            if data.get("gcpManaged") is not None:
-                print(f"  [INFO] GCP Managed: {data.get('gcpManaged')}")
                 
         elif resp.status_code == 401:
             print(f"  [DEBUG] Project discovery returned 401. Attempting token refresh...")
