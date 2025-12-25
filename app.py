@@ -332,8 +332,31 @@ def discover_project():
     try:
         resp = requests.post(url, headers=headers, json=payload, timeout=10)
         if resp.status_code == 200:
-            state["project_id"] = resp.json().get("cloudaicompanionProject")
+            data = resp.json()
+            state["project_id"] = data.get("cloudaicompanionProject")
+            
+            # Extract and store additional account info
+            state["account_info"] = {
+                "project_id": data.get("cloudaicompanionProject"),
+                "billing_enabled": data.get("billingEnabled"),
+                "user_email": data.get("userEmail"),
+                "subscription": data.get("subscription"),
+                "edition": data.get("edition"),
+                "quota_info": data.get("quotaInfo"),
+                "raw_keys": list(data.keys())  # Log all available keys
+            }
+            
             print(f"  [DEBUG] Project Discovered: {state['project_id']}")
+            print(f"  [DEBUG] Response keys: {list(data.keys())}")
+            
+            # Print tier-relevant info if available
+            if data.get("subscription"):
+                print(f"  [INFO] Subscription: {data.get('subscription')}")
+            if data.get("edition"):
+                print(f"  [INFO] Edition: {data.get('edition')}")
+            if data.get("billingEnabled") is not None:
+                print(f"  [INFO] Billing Enabled: {data.get('billingEnabled')}")
+                
         elif resp.status_code == 401:
             print(f"  [DEBUG] Project discovery returned 401. Attempting token refresh...")
             if refresh_access_token():
