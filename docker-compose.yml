@@ -1,0 +1,15 @@
+services:
+  gemini-api-proxy:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/data
+    environment:
+      - PORT=8080
+      - HOST=0.0.0.0
+      - TOKEN_FILE=/data/google_token.json
+      - RATE_LIMIT=0
+      - WAIT_MODE=false
+      - SHOW_TOKEN=false
+    restart: always

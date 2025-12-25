@@ -1,0 +1,11 @@
+.tests/
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+venv/
+ENV/
+.agent/rules/testing.md
+data/
+.agent

@@ -1,0 +1,16 @@
+[Unit]
+Description=Gemini Code Assist API Proxy (OpenAI Compatible)
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/opt/gemini-api-proxy
+Environment="PORT=8081"
+Environment="HOST=0.0.0.0"
+Environment="TOKEN_FILE=/opt/gemini-api-proxy/google_token.json"
+ExecStart=/opt/gemini-api-proxy/venv/bin/python -u app.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
