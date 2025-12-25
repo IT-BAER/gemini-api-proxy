@@ -161,7 +161,19 @@ Usage limits depend on your Google account subscription, for example:
 | Google AI Pro | Higher limits with paid subscription |
 
 Check [Google's documentation](https://cloud.google.com/gemini/docs/codeassist/overview) for current quota information.
+<br>
 
+## 💜 Support Development
+
+If this project helps you, consider supporting future work, which heavily relies on coffee:
+
+<div align="center">
+<a href="https://www.buymeacoffee.com/itbaer" target="_blank"><img src="https://github.com/user-attachments/assets/64107f03-ba5b-473e-b8ad-f3696fe06002" alt="Buy Me A Coffee" style="height: 60px; max-width: 217px;"></a>
+<br>
+<a href="https://www.paypal.com/donate/?hosted_button_id=5XXRC7THMTRRS" target="_blank">Donate via PayPal</a>
+</div>
+
+<br>
 
 ## License
 
