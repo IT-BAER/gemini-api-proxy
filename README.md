@@ -62,7 +62,6 @@ sudo ./setup.sh
 ```
 #### Removal
 ```bash
-```bash
 sudo systemctl stop gemini-api-proxy && sudo systemctl disable gemini-api-proxy && sudo rm /etc/systemd/system/gemini-api-proxy.service && sudo systemctl daemon-reload && sudo rm -rf /opt/gemini-api-proxy
 ```
 
